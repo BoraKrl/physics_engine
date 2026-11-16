@@ -1,4 +1,5 @@
 #include "physics.h"
+#include "collision.h"
 
 void physics_init(PhysicsWorld* w, float width, float height) {
     w->count = 0;
@@ -16,29 +17,16 @@ void physics_spawn(PhysicsWorld* w, Vec2 pos, Vec2 vel, float radius) {
 }
 
 void physics_step(PhysicsWorld* w, float dt) {
-    for (uint32_t i = 0; i < w->count; i++) {
-        // Symplectic Euler integration
-        w->vel[i] = vec2_add(w->vel[i], vec2_scale(w->gravity, dt));
-        w->pos[i] = vec2_add(w->pos[i], vec2_scale(w->vel[i], dt));
+    const int substeps = 8;
+    float sub_dt = dt / (float)substeps;
 
-        float r = w->radius[i];
-
-        // Floor & ceiling bounce
-        if (w->pos[i].y + r > w->bounds_height) {
-            w->pos[i].y = w->bounds_height - r;
-            w->vel[i].y *= -0.82f;
-        } else if (w->pos[i].y - r < 0.0f) {
-            w->pos[i].y = r;
-            w->vel[i].y *= -0.82f;
+    for (int step = 0; step < substeps; step++) {
+        for (uint32_t i = 0; i < w->count; i++) {
+            w->vel[i] = vec2_add(w->vel[i], vec2_scale(w->gravity, sub_dt));
+            w->pos[i] = vec2_add(w->pos[i], vec2_scale(w->vel[i], sub_dt));
         }
 
-        // Left & right wall bounce
-        if (w->pos[i].x + r > w->bounds_width) {
-            w->pos[i].x = w->bounds_width - r;
-            w->vel[i].x *= -0.82f;
-        } else if (w->pos[i].x - r < 0.0f) {
-            w->pos[i].x = r;
-            w->vel[i].x *= -0.82f;
-        }
+        collision_solve_particles(w);
+        collision_solve_bounds(w);
     }
 }

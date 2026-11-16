@@ -17,7 +17,7 @@ int main(void) {
         if (dt > 0.033f) dt = 0.033f; // Prevent huge jumps if window is dragged
 
         // Hold left mouse button to spawn particles
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             Vector2 m = GetMousePosition();
             physics_spawn(&world, (Vec2){ m.x, m.y }, (Vec2){ 0.0f, 0.0f }, 8.0f);
         }
